@@ -120,8 +120,8 @@ class BorgIdVerify():
         printn_stderr(line.decode('utf-8'))
       return False
 
-    for line in result.stdout.splitlines():
-      self._borg_id_info.append(line.decode('utf-8'))
+    self._borg_id_info = [ line.decode('utf-8') for line in result.stdout.splitlines() ]
+
     return True
 
 
@@ -180,12 +180,14 @@ class BorgIdVerify():
     """ Check all repositories """
     self.print_version()
 
+    ret_code = 0
+
     folders = [f for f in os.listdir(self._borg_base_path) if os.path.isdir(os.path.join(self._borg_base_path, f))]
     for folder in folders:
       full_dir = os.path.join(self._borg_base_path, folder)
       printn_stdout(f"* Checking Borg path \"{full_dir}\"...")
 
-      update = self._force_update
+      update = False
       if self.read_id_file(f"{full_dir}.ids") and self.get_borg_id_info(full_dir) and self._file_id_info:
         if self.compare_ids():
           if len(self._borg_id_info) != len(self._file_id_info):
@@ -195,8 +197,10 @@ class BorgIdVerify():
             printn_stdout("NOTE: Not updating ID file due to no changes")
         else:
           if self._force_update:
+            update = True
             printn_stdout("WARNING: Verification failed but --force specified, still updating ID file")
           else:
+            ret_code = 1
             printn_stderr(f"ERROR: Verification for Borg repository \"{full_dir}\" failed. Not updating ID file!")
 
       if update:
@@ -207,6 +211,8 @@ class BorgIdVerify():
           self.write_id_file(f"{full_dir}.ids")
 
       printn_stdout("")
+
+    sys.exit(ret_code)
 
 
 def main(argv):
