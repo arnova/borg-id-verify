@@ -139,8 +139,7 @@ class BorgIdVerify():
 
     try:
       with open(id_filename, 'r', encoding='ascii') as file_handle:
-        for line in file_handle:
-          self._file_id_info.append(line.strip('\n'))
+        self._file_id_info = [ line.strip('\n') for line in file_handle ]
       return True
     except IOError:
       printn_stderr(f"ERROR: Reading Borg-id file {id_filename} failed")
