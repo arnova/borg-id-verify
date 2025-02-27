@@ -14,4 +14,5 @@ on the server where the Borg backups reside. The flow for its usage is as follow
 3) Run "borg-id-verify /path/to/borg-repos --force" to update all archive IDs afterwards. This is an important step since it makes sure the stored information
    is up-2-date for the "next" verification run.
 
-Note that the script assumes "/path/to/borg-repos" is the root-folder containing one or more Borg repository folders. For additional options run the script with "--help"
+Note that the script assumes "/path/to/borg-repos" is the root-folder containing one or more Borg repository folders. For additional options run the script with
+"--help".
