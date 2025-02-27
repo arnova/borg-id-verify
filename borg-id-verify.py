@@ -7,7 +7,7 @@
 # Dependencies      : subprocess, getopt, sys, os
 # Python Version    : 3
 # Initial date      : February 14, 2025
-# Last Modified     : February 21, 2025
+# Last Modified     : February 27, 2025
 
 import subprocess
 import sys
@@ -185,10 +185,12 @@ class BorgIdVerify():
     folders = [f for f in os.listdir(self._borg_base_path) if os.path.isdir(os.path.join(self._borg_base_path, f))]
     for folder in folders:
       full_dir = os.path.join(self._borg_base_path, folder)
+      id_file = os.path.join(self._borg_base_path, f".{folder}.id")
+
       printn_stdout(f"* Checking Borg path \"{full_dir}\"...")
 
       update = False
-      if self.read_id_file(f"{full_dir}.ids") and self.get_borg_id_info(full_dir) and self._file_id_info:
+      if self.read_id_file(id_file) and self.get_borg_id_info(full_dir) and self._file_id_info:
         if self.compare_ids():
           if len(self._borg_id_info) != len(self._file_id_info):
             update = True
@@ -208,7 +210,7 @@ class BorgIdVerify():
           printn_stdout("NOTE: Skipping updating ID file due to --dryrun")
         else:
           printn_stdout("* Updating ID file...")
-          self.write_id_file(f"{full_dir}.ids")
+          self.write_id_file(id_file)
 
       printn_stdout("")
 
