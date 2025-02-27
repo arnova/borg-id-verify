@@ -1,0 +1,17 @@
+                      -= borg-id-verify script =-
+       Python script to verfiy the IDs of Borg backup archives
+
+(C) Copyright 2025 by Arno van Amersfoort
+Web : https://github.com/arnova/borg-id-verify
+Email : a r n o DOT v a n DOT a m e r s f o o r t AT g m a i l DOT c o m
+(note: you must remove all spaces and substitute the @ and the . at the proper locations!)
+-------------------------------------------------------------------------------
+This script was written specifically for verifying Borg backup "append-only" archives where any archive pruning/compacting is performed server-side. It keeps
+track of previously created archives and their IDs and detects unauthorized (malicious) changes of the backup repository. Typically the script should be run
+on the server where the Borg backups reside. The flow for its usage is as follows:
+1) Run "borg-id-verify /path/to/borg-repos" (without any additional arguments) to check the integrity of the Borg repository;
+2) If the repository is ok, perform any Borg pruning/compacting;
+3) Run "borg-id-verify /path/to/borg-repos --force" to update all archive IDs afterwards. This is an important step since it makes sure the stored information
+   is up-2-date for the "next" verification run.
+
+Note that the script assumes "/path/to/borg-repos" is the root-folder containing one or more Borg repository folders. For additional options run the script with "--help"
