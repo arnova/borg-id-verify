@@ -7,14 +7,14 @@
 # Dependencies      : subprocess, getopt, sys, os
 # Python Version    : 3
 # Initial date      : February 14, 2025
-# Last Modified     : February 27, 2025
+# Last Modified     : March 3, 2025
 
 import subprocess
 import sys
 import os
 import getopt
 
-MY_VERSION = "0.12"
+MY_VERSION = "0.13"
 
 def printn_stdout(line):
   """ Print to stdout with linefeed """
@@ -191,16 +191,16 @@ class BorgIdVerify():
 
       update = False
       if self.read_id_file(id_file) and self.get_borg_id_info(full_dir) and self._file_id_info:
-        if self.compare_ids():
-          if len(self._borg_id_info) != len(self._file_id_info):
-            update = True
-          else:
-            update = False
-            printn_stdout("NOTE: Not updating ID file due to no changes")
+        if self._force_update:
+          update = True
+          printn_stdout("NOTE: --force specified, not verifying IDs")
         else:
-          if self._force_update:
-            update = True
-            printn_stdout("WARNING: Verification failed but --force specified, still updating ID file")
+          if self.compare_ids():
+            if len(self._borg_id_info) != len(self._file_id_info):
+              update = True
+            else:
+              update = False
+              printn_stdout("NOTE: Not updating ID file due to no changes")
           else:
             ret_code = 1
             printn_stderr(f"ERROR: Verification for Borg repository \"{full_dir}\" failed. Not updating ID file!")
