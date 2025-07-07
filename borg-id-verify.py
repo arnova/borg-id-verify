@@ -14,7 +14,7 @@ import sys
 import os
 import getopt
 
-MY_VERSION = "0.14"
+MY_VERSION = "0.15"
 
 def printn_stdout(line):
   """ Print to stdout with linefeed """
@@ -216,7 +216,12 @@ class BorgIdVerify():
         if self._dryrun:
           printn_stdout("NOTE: Skipping updating ID file due to --dryrun")
         else:
-          printn_stdout("* Updating ID file...")
+          if os.path.isfile(id_file):
+            old_file = f"{id_file}.old"
+            os.remove(old_file)
+            os.rename(id_file, old_file)
+
+          printn_stdout("* Writing (new) ID file...")
           self.write_id_file(id_file)
 
       printn_stdout("")
