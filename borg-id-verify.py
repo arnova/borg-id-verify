@@ -7,14 +7,14 @@
 # Dependencies      : subprocess, getopt, sys, os
 # Python Version    : 3
 # Initial date      : February 14, 2025
-# Last Modified     : March 3, 2025
+# Last Modified     : July 7, 2025
 
 import subprocess
 import sys
 import os
 import getopt
 
-MY_VERSION = "0.13"
+MY_VERSION = "0.14"
 
 def printn_stdout(line):
   """ Print to stdout with linefeed """
@@ -34,6 +34,7 @@ class BorgIdVerify():
     self._file_id_info = []
     self._borg_id_info = []
     self._force_update = False
+    self._init = False
     self._dryrun = False
 
   @staticmethod
@@ -53,6 +54,7 @@ class BorgIdVerify():
     printn_stdout("--help|-h              - Show (this) help screen")
     printn_stdout("--version              - Show program version")
     printn_stdout("--force|-f             - Force file updating, even when verify fails")
+    printn_stdout("--init|-i              - Init new repositories")
     printn_stdout("--dryrun|-n            - Do NOT write any files")
     printn_stdout("")
 
@@ -60,7 +62,7 @@ class BorgIdVerify():
   def process_commandline(self, argv):
     """ Process command line arguments (if any) """
     try:
-      opts, args = getopt.getopt(argv, "hvnf", ["help", "version", "dryrun", "force"])
+      opts, args = getopt.getopt(argv, "hvnfi", ["help", "version", "dryrun", "force", "init"])
     except getopt.GetoptError as err_msg:
       printn_stderr(f"ERROR: {err_msg}")
       return False
@@ -80,6 +82,9 @@ class BorgIdVerify():
 
       if option in ("-f", "--force"):
         self._force_update = True
+
+      if option in ("-i", "--init"):
+        self._init = True
 
     # Overwrite data-path?
     if len(args) == 1:
@@ -128,14 +133,6 @@ class BorgIdVerify():
   def read_id_file(self, id_filename):
     """ Read (hash) info from repo info file """
     self._file_id_info = []
-
-    if not os.path.isfile(id_filename):
-      if not self._force_update:
-        printn_stderr(f"ERROR: Borg-id file {id_filename} does not exist (yet). If this is the first run, use --force")
-        return False
-      else:
-        printn_stdout(f"WARNING: Borg-id file {id_filename} does not exist (yet) but continuing since --force is specified")
-        return True
 
     try:
       with open(id_filename, 'r', encoding='ascii') as file_handle:
@@ -189,23 +186,33 @@ class BorgIdVerify():
 
       printn_stdout(f"* Checking Borg path \"{full_dir}\"...")
 
-      update = False
-      if self.read_id_file(id_file) and self.get_borg_id_info(full_dir) and self._file_id_info:
+      write_file = False
+
+      if not os.path.isfile(id_file):
+        if not self._init:
+          printn_stderr(f"ERROR: Borg-id file {id_file} does not exist (yet). If this is the first run, use --init")
+          printn_stdout("")
+          continue
+        else:
+          printn_stdout(f"WARNING: Borg-id file {id_file} does not exist (yet). Creating one since --init is specified")
+          self.get_borg_id_info(full_dir)
+          write_file = True
+      elif self.read_id_file(id_file) and self.get_borg_id_info(full_dir) and self._file_id_info:
         if self._force_update:
-          update = True
+          write_file = True
           printn_stdout("NOTE: --force specified, not verifying IDs")
         else:
           if self.compare_ids():
             if len(self._borg_id_info) != len(self._file_id_info):
-              update = True
+              write_file = True
             else:
-              update = False
+              write_file = False
               printn_stdout("NOTE: Not updating ID file due to no changes")
           else:
             ret_code = 1
             printn_stderr(f"ERROR: Verification for Borg repository \"{full_dir}\" failed. Not updating ID file!")
 
-      if update:
+      if write_file:
         if self._dryrun:
           printn_stdout("NOTE: Skipping updating ID file due to --dryrun")
         else:
