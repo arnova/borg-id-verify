@@ -7,14 +7,14 @@
 # Dependencies      : subprocess, getopt, sys, os
 # Python Version    : 3
 # Initial date      : February 14, 2025
-# Last Modified     : July 7, 2025
+# Last Modified     : July 21, 2025
 
 import subprocess
 import sys
 import os
 import getopt
 
-MY_VERSION = "0.15"
+MY_VERSION = "0.16"
 
 def printn_stdout(line):
   """ Print to stdout with linefeed """
@@ -217,9 +217,10 @@ class BorgIdVerify():
           printn_stdout("NOTE: Skipping updating ID file due to --dryrun")
         else:
           if os.path.isfile(id_file):
-            old_file = f"{id_file}.old"
-            os.remove(old_file)
-            os.rename(id_file, old_file)
+            old_id_file = f"{id_file}.old"
+            if os.path.isfile(old_id_file):
+              os.remove(old_id_file)
+            os.rename(id_file, old_id_file)
 
           printn_stdout("* Writing (new) ID file...")
           self.write_id_file(id_file)
