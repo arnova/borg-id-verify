@@ -14,7 +14,7 @@ import sys
 import os
 import getopt
 
-MY_VERSION = "1.00"
+MY_VERSION = "1.01"
 
 def printn_stdout(line):
   """ Print to stdout with linefeed """
@@ -119,7 +119,11 @@ class BorgIdVerify():
     self._borg_id_info = []
 
     try:
-      result = subprocess.run(['borg', 'list', repo_name], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+      result = subprocess.run(['borg', 'list', repo_name],
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT,
+                              env={'BORG_UNKNOWN_UNENCRYPTED_REPO_ACCESS_IS_OK': 'yes', 'BORG_RELOCATED_REPO_ACCESS_IS_OK': 'yes'},
+                              check=False)
     except subprocess.CalledProcessError:
       printn_stderr("ERROR: Borg execution failed")
       return False
