@@ -7,14 +7,14 @@
 # Dependencies      : subprocess, getopt, sys, os
 # Python Version    : 3
 # Initial date      : February 14, 2025
-# Last Modified     : July 21, 2025
+# Last Modified     : October 27, 2025
 
 import subprocess
 import sys
 import os
 import getopt
 
-MY_VERSION = "0.16"
+MY_VERSION = "1.00"
 
 def printn_stdout(line):
   """ Print to stdout with linefeed """
@@ -31,6 +31,7 @@ class BorgIdVerify():
 
   def __init__(self):
     self._borg_base_path = None
+    self._repo = None
     self._file_id_info = []
     self._borg_id_info = []
     self._force_update = False
@@ -55,6 +56,7 @@ class BorgIdVerify():
     printn_stdout("--version              - Show program version")
     printn_stdout("--force|-f             - Force file updating, even when verify fails")
     printn_stdout("--init|-i              - Init new repositories")
+    printn_stdout("--repo=[repo]          - Only verify repository [repo]")
     printn_stdout("--dryrun|-n            - Do NOT write any files")
     printn_stdout("")
 
@@ -62,12 +64,12 @@ class BorgIdVerify():
   def process_commandline(self, argv):
     """ Process command line arguments (if any) """
     try:
-      opts, args = getopt.getopt(argv, "hvnfi", ["help", "version", "dryrun", "force", "init"])
+      opts, args = getopt.getopt(argv, "hvnfi", ["help", "version", "dryrun", "force", "init", "repo="])
     except getopt.GetoptError as err_msg:
       printn_stderr(f"ERROR: {err_msg}")
       return False
 
-    for option, _value in opts:
+    for option, value in opts:
       if option in ("-h", "/h", "--help"):
         self.print_version()
         self.print_help()
@@ -85,6 +87,9 @@ class BorgIdVerify():
 
       if option in ("-i", "--init"):
         self._init = True
+
+      if option == "--repo":
+        self._repo = value.lower()
 
     # Overwrite data-path?
     if len(args) == 1:
@@ -179,7 +184,11 @@ class BorgIdVerify():
 
     ret_code = 0
 
-    folders = [f for f in os.listdir(self._borg_base_path) if os.path.isdir(os.path.join(self._borg_base_path, f))]
+    if self._repo is None:
+      folders = [f for f in os.listdir(self._borg_base_path) if os.path.isdir(os.path.join(self._borg_base_path, f))]
+    else:
+      folders = [ self._repo ]
+
     for folder in folders:
       full_dir = os.path.join(self._borg_base_path, folder)
       id_file = os.path.join(self._borg_base_path, f".{folder}.id")
