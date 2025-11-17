@@ -7,14 +7,14 @@
 # Dependencies      : subprocess, getopt, sys, os
 # Python Version    : 3
 # Initial date      : February 14, 2025
-# Last Modified     : November 10, 2025
+# Last Modified     : November 17, 2025
 
 import subprocess
 import sys
 import os
 import getopt
 
-MY_VERSION = "1.01a"
+MY_VERSION = "1.01b"
 
 def printn_stdout(line):
   """ Print to stdout with linefeed """
@@ -134,7 +134,7 @@ class BorgIdVerify():
         printn_stderr(line.decode('utf-8'))
       return False
 
-    self._borg_id_info = [ line.decode('utf-8') for line in result.stdout.splitlines() if not line.startswith('Removed stale shared roster lock') ]
+    self._borg_id_info = [ line.decode('utf-8') for line in result.stdout.splitlines() if not line.startswith(b'Removed stale shared roster lock') ]
 
     return True
 
